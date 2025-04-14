@@ -28,7 +28,6 @@ export const authorize = async (req, res, next) => {
             return res.status(401).json({ error: "Utilisateur non trouvé 🚫" });
         }
 
-        // ✅ On attache l'utilisateur à la requête
         req.user = {
             id: userData.id,
             name: userData.name,

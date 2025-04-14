@@ -9,7 +9,6 @@ export const checkPermission = (permissionName) => {
                     .json({ error: "Utilisateur non authentifié 🚫" });
             }
 
-            // ✅ Récupérer les permissions depuis la table roles
             const { data: roleData, error: roleError } = await supabase
                 .from("roles")
                 .select(permissionName)
@@ -28,11 +27,9 @@ export const checkPermission = (permissionName) => {
             next();
         } catch (error) {
             console.error(error);
-            return res
-                .status(500)
-                .json({
-                    error: "Erreur lors de la vérification des permissions 🚫",
-                });
+            return res.status(500).json({
+                error: "Erreur lors de la vérification des permissions 🚫",
+            });
         }
     };
 };

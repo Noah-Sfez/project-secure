@@ -13,7 +13,7 @@ export const getUsers = async (req, res) => {
 };
 export const registerUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body; // 👈 On récupère aussi "role"
+        const { name, email, password, role } = req.body;
 
         if (!name || !email || !password) {
             return res
@@ -24,10 +24,8 @@ export const registerUser = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Définir le rôle par défaut si non précisé
         const roleName = role || "USER";
 
-        // 🔍 Récupérer l'ID du rôle souhaité
         const { data: roleData, error: roleError } = await supabase
             .from("roles")
             .select("id")
@@ -40,13 +38,12 @@ export const registerUser = async (req, res) => {
                 roleError || `Rôle ${roleName} non trouvé`
             );
             return res
-                .status(400) // <- Je passe en 400 car ce n'est pas une erreur serveur mais une mauvaise requête côté client
+                .status(400)
                 .json({ error: `Rôle ${roleName} non trouvé dans la base.` });
         }
 
         const roleId = roleData.id;
 
-        // ✅ Insertion de l'utilisateur avec le role_id
         const { data, error } = await supabase.from("users").insert([
             {
                 name,
@@ -83,7 +80,6 @@ export const loginUser = async (req, res) => {
                 .json({ error: "Merci de fournir email et mot de passe." });
         }
 
-        // 🔍 Vérifie si l'utilisateur existe
         const { data: user, error: userError } = await supabase
             .from("users")
             .select(
@@ -106,22 +102,19 @@ export const loginUser = async (req, res) => {
                 .json({ error: "Utilisateur non authentifié 🚫" });
         }
 
-        // 🚫 Vérifie le rôle de l'utilisateur
         if (user.role.name === "PERMABAN") {
             return res
                 .status(403)
                 .json({ error: "Accès refusé : utilisateur banni 🚫" });
         }
 
-        // ✅ Vérifie le mot de passe
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ error: "Mot de passe incorrect 🚫" });
         }
 
-        // ✅ Crée le token JWT
         const token = jwt.sign(
-            { id: user.id, role: user.role.name }, // tu peux aussi ajouter les permissions ici si tu veux
+            { id: user.id, role: user.role.name },
             process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
