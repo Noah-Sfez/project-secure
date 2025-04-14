@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import supabase from "../supabaseClient.js";
 
-export const authorize = (req, res, next) => {
+export const authorize = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
@@ -16,10 +17,28 @@ export const authorize = (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        req.user = decoded; // On ajoute les infos du user dans la requête
+        const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("id, name, email, role")
+            .eq("id", decoded.id)
+            .single();
+
+        if (userError || !userData) {
+            console.error(userError);
+            return res.status(401).json({ error: "Utilisateur non trouvé 🚫" });
+        }
+
+        // ✅ On attache l'utilisateur à la requête
+        req.user = {
+            id: userData.id,
+            name: userData.name,
+            email: userData.email,
+            roleId: userData.role,
+        };
 
         next();
     } catch (error) {
+        console.error(error);
         return res.status(401).json({ error: "Token invalide ou expiré 🚫" });
     }
 };
