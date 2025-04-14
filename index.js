@@ -1,8 +1,11 @@
-const express = require("express");
+import express from "express";
+import userRoutes from "./routes/userRoutes.js";
+import supabase from "./supabaseClient.js";
+
 const app = express();
 const PORT = 3000;
 
-const userRoutes = require("./routes/userRoutes");
+app.use(express.json());
 app.use("/api/users", userRoutes);
 
 app.get("/health", (req, res) => {

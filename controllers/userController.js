@@ -1,12 +1,11 @@
-// GET /api/users
-const getUsers = (req, res) => {
-    res.send("Liste des utilisateurs");
-};
+import supabase from "../supabaseClient.js";
 
-// POST /api/users
-const createUser = (req, res) => {
-    const { name } = req.body;
-    res.send(`Utilisateur ${name} créé avec succès ! 🎉`);
-};
+export const getUsers = async (req, res) => {
+    const { data, error } = await supabase.from("users").select("*");
 
-module.exports = { getUsers, createUser };
+    if (error) {
+        return res.status(500).json({ error: error.message });
+    }
+
+    res.json(data);
+};
