@@ -11,12 +11,25 @@ export const testShopifyHmac = async (req, res) => {
                 .status(400)
                 .json({ error: "Missing HMAC header or secret." });
         }
+        console.log("➡️ Est un buffer :", Buffer.isBuffer(req.body)); // on log d’abord
 
         const generatedHmac = crypto
             .createHmac("sha256", secret)
             .update(req.body)
-            .digest("base64");
-        if (generatedHmac === hmacHeader) {
+            .digest(); // ici pas de base64, on garde en buffer
+
+        const receivedHmac = Buffer.from(hmacHeader, "base64");
+
+        const isValid =
+            generatedHmac.length === receivedHmac.length &&
+            crypto.timingSafeEqual(generatedHmac, receivedHmac);
+
+        console.log("🔐 generatedHmac:", generatedHmac.toString("base64"));
+        console.log("📩 hmacHeader   :", hmacHeader);
+        console.log("➡️ Type req.body :", typeof req.body);
+        console.log("➡️ Est un buffer :", Buffer.isBuffer(req.body));
+
+        if (isValid) {
             return res
                 .status(200)
                 .json({ success: true, message: "Authentifié ✅" });

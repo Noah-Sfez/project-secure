@@ -1,15 +1,12 @@
 import express from "express";
-import { authorize } from "../middlewares/authMiddleware.js";
-
 import { testShopifyHmac } from "../controllers/webhookController.js";
 
-
 const router = express.Router();
+
 router.post(
-    "/",
-    express.raw({ type: "application/json" }),
+    "/shopify-sales",
+    express.raw({ type: "application/json" }), // C'est bon tu l'as bien ajouté ✅
     testShopifyHmac
 );
-
 
 export default router;

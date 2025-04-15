@@ -6,11 +6,11 @@ import webhookRoutes from "./routes/webhooksRoutes.js";
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use("/api/webhooks", webhookRoutes);
+app.use(express.json()); // Pour toutes les routes standards
+
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
-app.use("/webhooks/shopify-sales", express.raw({ type: "application/json" }));
-app.use("/api/webhooks", webhookRoutes);
 
 app.get("/health", (req, res) => {
     res.json({ test: "hello world" });
