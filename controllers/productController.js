@@ -91,65 +91,27 @@ export const createProduct = async (req, res) => {
 
 export const createProductWithImage = async (req, res) => {
     try {
-        const { name, price, image } = req.body;
+        const { name, price } = req.body;
         const userId = req.user.id;
 
-        if (!name || !price) {
+        if (!name || !price || !req.file) {
             return res.status(400).json({
-                error: "Nom, prix requis",
+                error: "Nom, prix et image requis.",
             });
         }
 
-        // 🔄 Lire l'image en base64
-        const imagePath = path.join("uploads", req.file.filename);
-        const imageBuffer = fs.readFileSync(req.file.path);
-        const base64Image = `data:${
-            req.file.mimetype
-        };base64,${imageBuffer.toString("base64")}`;
-        console.log("Image lue en base64:", base64Image);
-        const base64Clean = base64Image.replace(/^data:image\/\w+;base64,/, "");
-        // 🧠 Préparer la requête GraphQL pour Shopify
-        const graphqlQuery = {
-            query: `
-              mutation productCreate($input: ProductInput!) {
-                productCreate(input: $input) {
-                  product {
-                    id
-                    title
-                    images (first: 1 ) {
-                edges {
-                    node {
-                        id
-                        originalSrc
-                    }
-                        }
-                    }
-                  }
-                  userErrors {
-                    field
-                    message
-                  }
-                }
-              }
-            `,
-            variables: {
-                input: {
+        const imagePath = req.file.path;
+        const imageBuffer = fs.readFileSync(imagePath);
+        const base64Image = imageBuffer.toString("base64");
+
+        const shopifyProductRes = await axios.post(
+            `https://${process.env.SHOPIFY_SHOP_NAME}.myshopify.com/admin/api/2023-04/products.json`,
+            {
+                product: {
                     title: name,
-                    variants: [{ price: price.toString() }],
-                    ...(image && {
-                        images: [
-                            {
-                                attachment: base64Clean,
-                            },
-                        ],
-                    }),
+                    variants: [{ price }],
                 },
             },
-        };
-
-        const shopifyResponse = await axios.post(
-            `https://${process.env.SHOPIFY_SHOP_NAME}.myshopify.com/admin/api/2023-04/graphql.json`,
-            graphqlQuery,
             {
                 headers: {
                     "Content-Type": "application/json",
@@ -159,21 +121,31 @@ export const createProductWithImage = async (req, res) => {
             }
         );
 
-        const responseData = shopifyResponse.data;
+        const productId = shopifyProductRes.data.product.id;
 
-        const userErrors = responseData.data.productCreate.userErrors;
-        if (userErrors.length > 0) {
-            return res.status(400).json({ error: userErrors[0].message });
-        }
+        const imageUploadRes = await axios.post(
+            `https://${process.env.SHOPIFY_SHOP_NAME}.myshopify.com/admin/api/2023-04/products/${productId}/images.json`,
+            {
+                image: {
+                    attachment: base64Image,
+                },
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Shopify-Access-Token":
+                        process.env.SHOPIFY_ADMIN_ACCESS_TOKEN,
+                },
+            }
+        );
 
-        const shopifyGID = responseData.data.productCreate.product.id;
-        const shopifyProductId = shopifyGID.split("/").pop();
+        const uploadedImage = imageUploadRes.data.image;
 
-        // 💾 Enregistrer dans Supabase
         const { error } = await supabase.from("products").insert([
             {
-                shopify_id: shopifyProductId,
+                shopify_id: productId,
                 created_by: userId,
+                image: uploadedImage.src,
             },
         ]);
 
@@ -181,15 +153,21 @@ export const createProductWithImage = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: "Produit avec image ajouté à Shopify et enregistré ✅",
+            message: "Produit + image créés avec succès 🚀",
+            shopify_id: productId,
+            image: uploadedImage.src,
         });
     } catch (err) {
-        console.error("Erreur produit avec image:", err);
+        console.error(
+            "Erreur création produit avec image :",
+            err.response?.data || err.message
+        );
         res.status(500).json({
             error: "Erreur lors de la création du produit avec image ❌",
         });
     }
 };
+
 
 export const getMyProducts = async (req, res) => {
     try {

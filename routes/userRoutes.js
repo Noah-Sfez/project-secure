@@ -1,6 +1,5 @@
 import express from "express";
 import {
-    getUsers,
     registerUser,
     loginUser,
     getMyUser,
@@ -14,8 +13,12 @@ const router = express.Router();
 router.post("/login", loginUser);
 router.post("/register", registerUser);
 
-router.get("/my-user", authorize, checkPermission("can_get_my_user"), getMyUser);
+router.get(
+    "/my-user",
+    authorize,
+    checkPermission("can_get_my_user"),
+    getMyUser
+);
 router.get("/users", authorize, checkPermission("can_get_users"), getAllUsers);
-router.get("/", authorize, getUsers);
 
 export default router;
