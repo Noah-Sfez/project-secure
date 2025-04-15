@@ -11,12 +11,12 @@ export const testShopifyHmac = async (req, res) => {
                 .status(400)
                 .json({ error: "Missing HMAC header or secret." });
         }
-        console.log("➡️ Est un buffer :", Buffer.isBuffer(req.body)); // on log d’abord
+        console.log("➡️ Est un buffer :", Buffer.isBuffer(req.body));
 
         const generatedHmac = crypto
             .createHmac("sha256", secret)
             .update(req.body)
-            .digest(); // ici pas de base64, on garde en buffer
+            .digest();
 
         const receivedHmac = Buffer.from(hmacHeader, "base64");
 
@@ -56,7 +56,7 @@ export const handleShopifyWebhook = async (req, res) => {
         // Vérifier la signature HMAC ✅
         const generatedHmac = crypto
             .createHmac("sha256", secret)
-            .update(JSON.stringify(req.body), "utf8") // ⚠️ ici c'est du buffer brut, pas JSON.parse
+            .update(JSON.stringify(req.body), "utf8")
             .digest("base64");
 
         if (generatedHmac !== hmacHeader) {
@@ -65,7 +65,6 @@ export const handleShopifyWebhook = async (req, res) => {
                 .json({ error: "Webhook non authentique 🚫" });
         }
 
-        // Extraire le payload brut
         const payload = JSON.parse(req.body.toString());
 
 

@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post(
     "/shopify-sales",
-    express.raw({ type: "application/json" }), // C'est bon tu l'as bien ajouté ✅
+    express.raw({ type: "application/json" }),
     testShopifyHmac
 );
 

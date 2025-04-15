@@ -11,7 +11,6 @@ export const createProduct = async (req, res) => {
             });
         }
 
-        // ✅ Requête GraphQL
         const graphqlQuery = {
             query: `
         mutation productCreate($input: ProductInput!) {
@@ -49,7 +48,6 @@ export const createProduct = async (req, res) => {
 
         const responseData = shopifyResponse.data;
 
-        // Vérifie les erreurs Shopify
         const userErrors = responseData.data.productCreate.userErrors;
         if (userErrors.length > 0) {
             return res.status(400).json({ error: userErrors[0].message });
@@ -58,7 +56,6 @@ export const createProduct = async (req, res) => {
         const shopifyGID = responseData.data.productCreate.product.id;
         const shopifyProductId = shopifyGID.split("/").pop();
 
-        // ✅ Enregistrer dans Supabase
         const { data, error } = await supabase
             .from("products")
             .insert([

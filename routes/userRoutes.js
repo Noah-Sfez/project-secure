@@ -11,7 +11,6 @@ import { checkPermission } from "../middlewares/permissionsMiddleware.js";
 
 const router = express.Router();
 
-// Pas besoin d'autorisation, ni de permission pour login et register
 router.post("/login", loginUser);
 router.post("/register", registerUser);
 
