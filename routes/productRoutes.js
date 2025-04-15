@@ -6,6 +6,7 @@ import {
     getMyProducts,
     getAllProducts,
     createProductWithImage,
+    getMyBestsellers,
 } from "../controllers/productController.js";
 import { testShopifyHmac } from "../controllers/webhookController.js";
 import multer from "multer";
@@ -36,6 +37,6 @@ router.post(
     express.raw({ type: "application/json" }),
     testShopifyHmac
 );
-
+router.get("/my-bestsellers", authorize, getMyBestsellers);
 
 export default router;

@@ -215,3 +215,31 @@ export const getAllProducts = async (req, res) => {
         res.status(500).json({ error: "Erreur interne du serveur 🚫" });
     }
 };
+
+export const getMyBestsellers = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const { data: products, error } = await supabase
+            .from("products")
+            .select("*")
+            .eq("created_by", userId)
+            .order("sales_count", { ascending: true });
+
+        if (error) {
+            console.error("Erreur récupération bestsellers:", error);
+            return res.status(500).json({
+                error: "Erreur lors de la récupération des bestsellers 🚫",
+            });
+        }
+
+        res.status(200).json({
+            message: "Bestsellers récupérés avec succès 🚀",
+            count: products.length,
+            products,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erreur serveur ❌" });
+    }
+};
