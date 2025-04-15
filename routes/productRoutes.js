@@ -5,8 +5,12 @@ import {
     createProduct,
     getMyProducts,
     getAllProducts,
+    createProductWithImage,
 } from "../controllers/productController.js";
 import { testShopifyHmac } from "../controllers/webhookController.js";
+import multer from "multer";
+const upload = multer({ dest: "uploads/" });
+
 
 
 const router = express.Router();
@@ -16,6 +20,13 @@ router.post(
     authorize,
     checkPermission("can_post_products"),
     createProduct
+);
+router.post(
+    "/products/with-image",
+    authorize,
+    checkPermission("can_post_image"),
+    upload.single("image"),
+    createProductWithImage
 );
 router.get("/my-products", authorize, getMyProducts);
 router.get("/products", authorize, checkPermission("can_get_users"), getAllProducts);
