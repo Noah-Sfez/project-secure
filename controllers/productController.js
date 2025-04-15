@@ -112,3 +112,29 @@ export const getMyProducts = async (req, res) => {
         res.status(500).json({ error: "Erreur interne du serveur 🚫" });
     }
 };
+
+export const getAllProducts = async (req, res) => {
+    try {
+        const { data: products, error } = await supabase
+            .from("products")
+            .select("*");
+
+        if (error) {
+            console.error("Erreur récupération produits:", error);
+            return res
+                .status(500)
+                .json({
+                    error: "Erreur lors de la récupération des produits 🚫",
+                });
+        }
+
+        res.status(200).json({
+            message: "Produits récupérés avec succès 🚀",
+            count: products.length,
+            products,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erreur interne du serveur 🚫" });
+    }
+};
