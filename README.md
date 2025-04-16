@@ -27,7 +27,7 @@ To install the project, follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/project-secure.git
+    git clone https://github.com/Noah-Sfez/project-secure.git
     ```
 2. Navigate to the project directory:
     ```bash
@@ -41,7 +41,7 @@ To install the project, follow these steps:
 ## Usage
 1. Start the application:
     ```bash
-    npm start
+    node index.js
     ```
 2. Access the application at `http://localhost:3000`.
 
